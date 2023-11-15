@@ -1,0 +1,10 @@
+# .gitignore
+*.pyc
+__pycache__/
+*.pyo
+*.pyc
+*.pyc/
+*.pyo/
+.DS_Store
+settings_dev.py
+db.sqlite3

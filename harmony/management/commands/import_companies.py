@@ -36,6 +36,12 @@ class Command(BaseCommand):
                 if not created:
                     company_mapping.connectwise_manage_name=company['name']
                     company_mapping.save()
+            
+            # Delete out-of-scope companies
+            company_ids_to_sync = [company['id'] for company in companies_to_sync]
+            companies_to_delete = CompanyMapping.objects.filter(connectwise_config=connectwise_config).exclude(connectwise_manage_id__in=company_ids_to_sync)
+            companies_to_delete.delete()
+
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"An error occurred while syncing Companies: {str(e)}"))

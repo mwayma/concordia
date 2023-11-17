@@ -3,8 +3,9 @@ import base64
 from django.conf import settings
 from django.core.cache import cache
 from datetime import timedelta
+from urllib.parse import urlencode
 
-def get_url(connectwise_config):
+def get_url(connectwise_config, endpoint):
     # Use the ConnectWiseConfig ID as part of the cache key
     codebase_cache_key = f'codebase_version_{connectwise_config.pk}'
     isCloud_cache_key = f'isCloud_{connectwise_config.pk}'
@@ -25,7 +26,7 @@ def get_url(connectwise_config):
         cache.set(codebase_cache_key, codebase_version, timeout=timedelta(days=1).total_seconds())
         cache.set(isCloud_cache_key, isCloud, timeout=timedelta(days=1).total_seconds())
 
-    api_url = f'{connectwise_config.base_url}/{codebase_version}apis/3.0/'
+    api_url = f'{connectwise_config.base_url}/{codebase_version}apis/3.0/{endpoint}'
     if isCloud:
         api_url = f'api-{api_url}'
         
@@ -41,12 +42,29 @@ def get_connectwise_headers(connectwise_config):
     }
     return headers
 
-def make_connectwise_api_call(connectwise_config, endpoint, method='get', data=None):
-    api_url = f'{get_url}{endpoint}'
+def extract_next_page_url(link_header):
+    parts = link_header.split('; ')
+    for part in parts:
+        if 'rel="next"' in part:
+            return part.strip('<>')
+
+    return None
+
+def make_connectwise_api_call(connectwise_config, endpoint, method='get', params=None, data=None):
+    api_url = get_url(connectwise_config, endpoint)
     headers = get_connectwise_headers(connectwise_config)
+    params = params or {}
     data = data or {}
 
+    # Print the complete URL
+    complete_url = f"{api_url}?{urlencode(params)}"
+    print(f"Complete URL: {complete_url}")
     # Use the requests library's request function with the specified method
-    response = requests.request(method, api_url, json=data, headers=headers)
-                                
-    return response.json()
+    response = requests.request(method, api_url, params=params, json=data, headers=headers)
+
+    # Check if there are pagination headers
+    next_page_url = extract_next_page_url(response.headers.get('link', ''))
+
+    # Return both response_data and next_page_url
+    response_data = response.json()
+    return response_data, next_page_url

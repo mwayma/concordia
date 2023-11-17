@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import fetch_connectwise_boards
+from .views import fetch_company_status
 
 urlpatterns = [
     # Your existing URL patterns
-    path('fetch-connectwise-boards/', fetch_connectwise_boards, name='fetch_connectwise_boards'),
+    path('fetch-company-status/', fetch_company_status, name='fetch_company_status'),
 ]

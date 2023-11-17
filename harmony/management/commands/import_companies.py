@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
-from harmony.models import ConnectWiseConfig, CompanyType, CompanyStatus, CompanyMapping
+from harmony.models import ConnectWiseConfig, CompanyMapping
 from harmony.utils import make_connectwise_api_call
-from urllib.parse import urlencode
 
 class Command(BaseCommand):
     help = 'Import companies from ConnectWise'

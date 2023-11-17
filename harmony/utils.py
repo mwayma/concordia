@@ -3,7 +3,6 @@ import base64
 from django.conf import settings
 from django.core.cache import cache
 from datetime import timedelta
-from urllib.parse import urlencode
 
 def get_url(connectwise_config, endpoint):
     # Use the ConnectWiseConfig ID as part of the cache key
@@ -56,9 +55,6 @@ def make_connectwise_api_call(connectwise_config, endpoint, method='get', params
     params = params or {}
     data = data or {}
 
-    # Print the complete URL
-    complete_url = f"{api_url}?{urlencode(params)}"
-    print(f"Complete URL: {complete_url}")
     # Use the requests library's request function with the specified method
     response = requests.request(method, api_url, params=params, json=data, headers=headers)
 

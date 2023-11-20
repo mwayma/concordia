@@ -1,5 +1,6 @@
 import requests
 import base64
+import msal
 from django.conf import settings
 from django.core.cache import cache
 from datetime import timedelta
@@ -34,7 +35,6 @@ def get_url(connectwise_config, endpoint):
 def get_connectwise_headers(connectwise_config):
     credentials = f"{connectwise_config.company_id}+{connectwise_config.api_public_key}:{connectwise_config.api_private_key}"
     credentials_base64 = base64.b64encode(credentials.encode()).decode()
-    print(credentials_base64)
     headers = {
         'Authorization': f'Basic {credentials_base64}',
         'Content-Type': 'application/json',
@@ -65,3 +65,36 @@ def make_connectwise_api_call(connectwise_config, endpoint, method='get', params
     # Return both response_data and next_page_url
     response_data = response.json()
     return response_data, next_page_url
+
+def getMsalToken(dataverse_config):
+    tenant_id = dataverse_config.tenant_id
+    client_id = dataverse_config.client_id
+    client_secret = dataverse_config.client_secret
+    authority = f'https://login.microsoftonline.com/{tenant_id}'
+
+    # Create a ConfidentialClientApplication
+    app = msal.ConfidentialClientApplication(
+        client_id,
+        authority=authority,
+        client_credential=client_secret
+    )
+
+    # Acquire a token
+    result = app.acquire_token_for_client(scopes=[f'{dataverse_config.environment_url}/.default'])
+    if 'expires_in' in result:
+        # Store the token along with its expiration time in the cache
+        cache.set(f'{dataverse_config.pk}_access_token', result['access_token'], timeout=result['expires_in'])
+    return result['access_token']
+
+def make_dataverse_api_call(dataverse_config, endpoint, method='get', params=None, data=None):
+    access_token = cache.get(f'{dataverse_config.pk}_access_token')
+    if not access_token:
+        access_token = getMsalToken(dataverse_config)
+
+    http_headers = {'Authorization': 'Bearer ' + access_token,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'}
+    api_url = f'{dataverse_config.environment_url}/api/data/v9.2/{endpoint}'
+    response = requests.request(method, api_url, headers=http_headers, params=params, json=data, stream=False)
+    print(response)
+

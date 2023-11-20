@@ -1,5 +1,5 @@
 from django import forms
-from .models import ConnectWiseConfig
+from .models import ConnectWiseConfig, DataverseConfig
 
 class ConnectWiseConfigForm(forms.ModelForm):
     class Meta:
@@ -21,3 +21,22 @@ class ConnectWiseConfigForm(forms.ModelForm):
             return current_value
 
         return api_private_key
+    
+class DataverseConfigForm(forms.ModelForm):
+    class Meta:
+        model = DataverseConfig
+        fields = '__all__'
+        widgets = {
+            'client_secret': forms.PasswordInput(attrs={'placeholder': '********'}),
+        }
+    
+    def clean_client_secret(self):
+        # Check if the private key is None or an empty string
+        client_secret = self.cleaned_data['client_secret']
+
+        if client_secret is None or client_secret == '':
+            # Retrieve the current value from the database
+            current_value = DataverseConfig.objects.get(pk=self.instance.pk).client_secret
+            return current_value
+
+        return client_secret

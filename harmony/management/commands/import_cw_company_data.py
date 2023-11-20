@@ -11,8 +11,8 @@ class Command(BaseCommand):
 
         for connectwise_config in connectwise_configs:
             # Fetch data from ConnectWise API (modify the endpoint as needed)
-            company_types_data = make_connectwise_api_call(connectwise_config, 'company/companies/types', method='get')
-            company_statuses_data = make_connectwise_api_call(connectwise_config, 'company/companies/statuses', method='get')
+            company_types_data, _ = make_connectwise_api_call(connectwise_config, 'company/companies/types', method='get')
+            company_statuses_data, _ = make_connectwise_api_call(connectwise_config, 'company/companies/statuses', method='get')
 
             # Process and create/update CompanyType and CompanyStatus records
             self.sync_company_types(connectwise_config, company_types_data)
@@ -51,6 +51,7 @@ class Command(BaseCommand):
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"An error occurred while syncing CompanyTypes: {str(e)}"))
+            print(data)
 
     def sync_company_statuses(self, connectwise_config, data):
         try:
@@ -82,4 +83,4 @@ class Command(BaseCommand):
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"An error occurred while syncing CompanyStatuses: {str(e)}"))
-
+            print(data)

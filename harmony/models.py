@@ -1,5 +1,17 @@
 from django.db import models
 
+class DataverseConfig(models.Model):
+    environment_url = models.URLField()
+    tenant_id = models.CharField(max_length=255)
+    client_id = models.CharField(max_length=255)
+    client_secret = models.CharField(max_length=255,blank=True, null=True)
+    def save(self, *args, **kwargs):
+        # Remove trailing "/" from environment_url
+        self.environment_url = self.environment_url.rstrip('/')
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return self.environment_url
+
 class ConnectWiseConfig(models.Model):
     base_url = models.URLField()
     company_id = models.CharField(max_length=255)
@@ -57,3 +69,10 @@ class SiteMapping(models.Model):
 
     def __str__(self):
         return f"{self.connectwise_manage_name} - ConnectWise ID: {self.connectwise_manage_id} - Dynamics 365 ID: {self.dynamics365_company_id}"
+
+class SyncMapping(models.Model):
+    connectwise_config = models.OneToOneField('ConnectWiseConfig', on_delete=models.CASCADE)
+    dataverse_config = models.OneToOneField('DataverseConfig', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Mapping between {self.connectwise_config} and {self.dataverse_config}"

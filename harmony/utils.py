@@ -34,6 +34,7 @@ def get_url(connectwise_config, endpoint):
 def get_connectwise_headers(connectwise_config):
     credentials = f"{connectwise_config.company_id}+{connectwise_config.api_public_key}:{connectwise_config.api_private_key}"
     credentials_base64 = base64.b64encode(credentials.encode()).decode()
+    print(credentials_base64)
     headers = {
         'Authorization': f'Basic {credentials_base64}',
         'Content-Type': 'application/json',

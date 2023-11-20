@@ -47,3 +47,13 @@ class CompanyMapping(models.Model):
 
     def __str__(self):
         return f"{self.connectwise_manage_name} - ConnectWise ID: {self.connectwise_manage_id} - Dynamics 365 ID: {self.dynamics365_company_id}"
+
+class SiteMapping(models.Model):
+    company = models.ForeignKey(CompanyMapping, on_delete=models.CASCADE)
+    connectwise_manage_id = models.CharField(max_length=255,blank=True, null=True)
+    connectwise_manage_name = models.CharField(max_length=255,blank=True, null=True)
+    dynamics365_company_id = models.CharField(max_length=255,blank=True, null=True)
+    dynamics365_name = models.CharField(max_length=255,blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.connectwise_manage_name} - ConnectWise ID: {self.connectwise_manage_id} - Dynamics 365 ID: {self.dynamics365_company_id}"

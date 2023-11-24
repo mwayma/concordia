@@ -52,9 +52,9 @@ class CompanyStatus(models.Model):
 
 class CompanyMapping(models.Model):
     connectwise_config = models.ForeignKey(ConnectWiseConfig, on_delete=models.CASCADE)
-    connectwise_manage_id = models.CharField(max_length=255,blank=True, null=True)
+    connectwise_manage_id = models.IntegerField(blank=True, null=True)
     connectwise_manage_name = models.CharField(max_length=255,blank=True, null=True)
-    dynamics365_company_id = models.CharField(max_length=255,blank=True, null=True)
+    dynamics365_company_id = models.UUIDField(blank=True, null=True)
     dynamics365_name = models.CharField(max_length=255,blank=True, null=True)
 
     def __str__(self):

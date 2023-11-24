@@ -86,7 +86,9 @@ def getMsalToken(dataverse_config):
         cache.set(f'{dataverse_config.pk}_access_token', result['access_token'], timeout=result['expires_in'])
     return result['access_token']
 
-def make_dataverse_api_call(dataverse_config, endpoint, method='get', params=None, data=None):
+def make_dataverse_api_call(dataverse_config, endpoint, method='get', headers=None, params=None, data=None):
+    params = params or {}
+    data = data or {}
     access_token = cache.get(f'{dataverse_config.pk}_access_token')
     if not access_token:
         access_token = getMsalToken(dataverse_config)
@@ -95,6 +97,7 @@ def make_dataverse_api_call(dataverse_config, endpoint, method='get', params=Non
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'}
     api_url = f'{dataverse_config.environment_url}/api/data/v9.2/{endpoint}'
+    if headers:
+        http_headers.update(headers)
     response = requests.request(method, api_url, headers=http_headers, params=params, json=data, stream=False)
-    print(response)
-
+    return response

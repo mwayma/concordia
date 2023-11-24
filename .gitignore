@@ -8,3 +8,4 @@ __pycache__/
 settings_dev.py
 db.sqlite3
 .env
+test_sync.py

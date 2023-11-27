@@ -30,6 +30,9 @@ ALLOWED_HOSTS = ['*']
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CONNECTWISE_CLIENT_ID = 'os.environ.get("CONNECTWISE_CLIENT_ID")'
 
+#Specify the log level for the app: 0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR
+LOGGING_LEVEL = 1
+
 # Application definition
 
 INSTALLED_APPS = [

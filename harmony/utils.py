@@ -12,6 +12,9 @@ def log(type='debug', area=None, message=None):
         return
     
     log_type = LogType.objects.get(name__iexact=type)
+    if log_type.id < settings.LOGGING_LEVEL:
+        return
+    
     if log_type:
         log = Log.objects.create(
             type = log_type,

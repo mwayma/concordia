@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
-from harmony.models import ConnectWiseConfig, CompanyMapping
-from harmony.utils import make_connectwise_api_call
+from harmony.models import ConnectWiseConfig, ConnectWiseCompany
+from harmony.utils import make_connectwise_api_call, log
+import traceback
 
 class Command(BaseCommand):
     help = 'Import companies from ConnectWise'
@@ -25,7 +26,7 @@ class Command(BaseCommand):
         try:
             companies_to_sync = self.fetch_all_data(connectwise_config, 'company/companies')
             for company in companies_to_sync:
-                company_mapping, created = CompanyMapping.objects.get_or_create(
+                company_mapping, created = ConnectWiseCompany.objects.get_or_create(
                     connectwise_config=connectwise_config,
                     connectwise_manage_id=company['id'],
                 )
@@ -38,12 +39,14 @@ class Command(BaseCommand):
             
             # Delete out-of-scope companies
             company_ids_to_sync = [company['id'] for company in companies_to_sync]
-            companies_to_delete = CompanyMapping.objects.filter(connectwise_config=connectwise_config).exclude(connectwise_manage_id__in=company_ids_to_sync)
+            companies_to_delete = ConnectWiseCompany.objects.filter(connectwise_config=connectwise_config).exclude(connectwise_manage_id__in=company_ids_to_sync)
             companies_to_delete.delete()
 
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"An error occurred while syncing Companies: {str(e)}"))
+            message = f'An error occurred while syncing Companies: {e}\n{traceback.format_exc()}'
+            log('error', 'ConnectWise Import', message)
+            self.stdout.write(self.style.ERROR(message))
     
     def sync_companies_filter(self, connectwise_config, sync_company_types, sync_company_statuses):
         try:
@@ -98,7 +101,7 @@ class Command(BaseCommand):
             
             # Sync companies
             for company in companies_to_sync:
-                company_mapping, created = CompanyMapping.objects.get_or_create(
+                company_mapping, created = ConnectWiseCompany.objects.get_or_create(
                     connectwise_config=connectwise_config,
                     connectwise_manage_id=company['id'],
                 )
@@ -111,12 +114,14 @@ class Command(BaseCommand):
             
             # Delete out-of-scope companies
             company_ids_to_sync = [company['id'] for company in companies_to_sync]
-            companies_to_delete = CompanyMapping.objects.filter(connectwise_config=connectwise_config).exclude(connectwise_manage_id__in=company_ids_to_sync)
+            companies_to_delete = ConnectWiseCompany.objects.filter(connectwise_config=connectwise_config).exclude(connectwise_manage_id__in=company_ids_to_sync)
             companies_to_delete.delete()
 
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"An error occurred while syncing Companies by filter: {str(e)}"))
+            message = f"An error occurred while syncing Companies by filter: {str(e)}"
+            log('error', 'ConnectWise Import', message)
+            self.stdout.write(self.style.ERROR(message))
 
     def fetch_all_data(self, connectwise_config, endpoint):
         data = []

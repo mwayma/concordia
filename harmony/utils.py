@@ -4,6 +4,23 @@ import msal
 from django.conf import settings
 from django.core.cache import cache
 from datetime import timedelta
+from .models import Log, LogType
+
+def log(type='debug', area=None, message=None):
+    # Check if this is a log about logging
+    if type.lower() == 'debug' and area == 'Log' and message.startswith('Log'):
+        return
+    
+    log_type = LogType.objects.get(name__iexact=type)
+    if log_type:
+        log = Log.objects.create(
+            type = log_type,
+            area = area,
+            message = message
+        )
+        log.save()
+    else:
+        log(type='error', area='System', message=f'Unable to log a message due to lack of correct log_type.  The message was: {message}')
 
 def get_url(connectwise_config, endpoint):
     # Use the ConnectWiseConfig ID as part of the cache key

@@ -1,5 +1,5 @@
 from .utils import make_dataverse_api_call
-from .models import ConnectWiseConfig, DataverseConfig, CompanyMapping, SyncMapping
+from .models import ConnectWiseConfig, DataverseConfig, CompanyMapping, SyncMapping, ConnectWiseCompany, DataverseAccount
 from datetime import datetime
 
 def create_dataverse_account(sync_mapping, connectwise_company_data):
@@ -21,7 +21,7 @@ def create_dataverse_account(sync_mapping, connectwise_company_data):
         connectwise_manage_id = connectwise_company_data[0]["id"]
         dataverse_config = sync_mapping.dataverse_config
         connectwise_config = sync_mapping.connectwise_config
-        company_mapping = CompanyMapping.objects.get(
+        connectwise_company = ConnectWiseCompany.objects.get(
             connectwise_config=connectwise_config,
             connectwise_manage_id=connectwise_manage_id
         )
@@ -32,11 +32,22 @@ def create_dataverse_account(sync_mapping, connectwise_company_data):
             created_data = response.json()
             accountid = created_data.get("accountid")
 
-            # Update the corresponding record in CompanyMapping
-            company_mapping.dynamics365_company_id = accountid
-            company_mapping.dynamics365_name = connectwise_company_data[0]["name"]
-            company_mapping.save()
+            # Create the new DataverseAccount rebord
+            dataverse_account = DataverseAccount.objects.create(
+                dataverse_config = dataverse_config,
+                dataverse_id = accountid,
+                dataverse_name = connectwise_company_data[0]["name"]
+            )
+            dataverse_account.save()
 
+            # Create the mapping between the two company records
+
+            company_mapping = CompanyMapping.objects.create(
+                sync_mapping = sync_mapping,
+                connectwise_company = connectwise_company,
+                dataverse_account = dataverse_account
+            )
+            company_mapping.save()
             # Print or log the created accountid
             print(f"Dynamics 365 accountid: {accountid}")
         else:

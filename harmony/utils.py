@@ -3,12 +3,16 @@ import base64
 import msal
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 from datetime import timedelta
 from .models import Log, LogType
 
 def log(type='debug', area=None, message=None):
     # Check if this is a log about logging
     if type.lower() == 'debug' and area == 'Log' and message.startswith('Log'):
+        return
+    
+    if type.lower() == 'debug' and area == 'LogEntry' and message.startswith('Log'):
         return
     
     log_type = LogType.objects.get(name__iexact=type)
@@ -22,6 +26,9 @@ def log(type='debug', area=None, message=None):
             message = message
         )
         log.save()
+    if settings.LOGGING_LEVEL == 0:
+        print(f'{timezone.now()} {type} | {area} | {message}')
+
     else:
         log(type='error', area='System', message=f'Unable to log a message due to lack of correct log_type.  The message was: {message}')
 

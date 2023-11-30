@@ -68,19 +68,29 @@ class CompanyStatus(models.Model):
 
 class ConnectWiseCompany(models.Model):
     connectwise_config = models.ForeignKey(ConnectWiseConfig, on_delete=models.CASCADE)
-    connectwise_manage_id = models.IntegerField(blank=True, null=True)
+    connectwise_manage_id = models.IntegerField()
     connectwise_manage_name = models.CharField(max_length=255,blank=True, null=True)
+    primary_contact = models.ForeignKey('ConnectWiseContact', on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f"{self.connectwise_manage_name}"
 
-class SiteMapping(models.Model):
+class ConnectWiseSite(models.Model):
     company = models.ForeignKey(ConnectWiseCompany, on_delete=models.CASCADE)
-    connectwise_manage_id = models.CharField(max_length=255,blank=True, null=True)
+    connectwise_manage_id = models.IntegerField()
     connectwise_manage_name = models.CharField(max_length=255,blank=True, null=True)
 
     def __str__(self):
         return f"{self.connectwise_manage_name} - ConnectWise ID: {self.connectwise_manage_id}"
+
+class ConnectWiseContact(models.Model):
+    connectwise_company = models.ForeignKey('ConnectWiseCompany', on_delete=models.CASCADE)
+    connectwise_manage_id = models.IntegerField()
+    first_name = models.CharField(max_length=255,blank=True, null=True)
+    last_name = models.CharField(max_length=255,blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - ConnectWise ID: {self.connectwise_manage_id}"
 
 class SyncMapping(models.Model):
     name = models.CharField(max_length=255)
@@ -93,10 +103,19 @@ class SyncMapping(models.Model):
 class DataverseAccount(models.Model):
     dataverse_config = models.ForeignKey(DataverseConfig, on_delete=models.CASCADE)
     dataverse_id = models.UUIDField()
-    dataverse_name = models.CharField(max_length=255,blank=True, null=True)
-
+    dataverse_name = models.CharField(max_length=255, blank=True, null=True)
+    primary_contact = models.ForeignKey('DataverseContact', on_delete=models.SET_NULL, blank=True, null=True)
     def __str__(self):
         return f"{self.dataverse_name}"
+    
+class DataverseContact(models.Model):
+    dataverse_account = models.ForeignKey(DataverseAccount, on_delete=models.CASCADE)
+    dataverse_id = models.UUIDField()
+    first_name = models.CharField(max_length=255,blank=True, null=True)
+    last_name = models.CharField(max_length=255,blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - Dataverse ID: {self.dataverse_id}"
     
 class CompanyMapping(models.Model):
     sync_mapping = models.ForeignKey(SyncMapping, on_delete=models.CASCADE)
@@ -105,3 +124,11 @@ class CompanyMapping(models.Model):
 
     def __str__(self):
         return f"{self.connectwise_company.connectwise_manage_id}: {self.connectwise_company.connectwise_manage_name} - {self.dataverse_account.dataverse_name}"
+    
+class ContactMapping(models.Model):
+    sync_mapping = models.ForeignKey(SyncMapping, on_delete=models.CASCADE)
+    connectwise_contact = models.ForeignKey(ConnectWiseContact, on_delete=models.CASCADE)
+    dataverse_contact = models.ForeignKey(DataverseContact, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.connectwise_contact.connectwise_manage_id}: {self.connectwise_contact.first_name} {self.connectwise_contact.last_name} - {self.dataverse_contact.dataverse_id}"

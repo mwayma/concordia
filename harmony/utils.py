@@ -26,7 +26,7 @@ def log(type='debug', area=None, message=None):
             message = message
         )
         log.save()
-    if settings.LOGGING_LEVEL == 0:
+    if settings.LOGGING_LEVEL == 0 or log_type.id == 3:
         print(f'{timezone.now()} {type} | {area} | {message}')
 
     else:

@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from harmony.models import ConnectWiseConfig, ConnectWiseCompany
 from harmony.utils import make_connectwise_api_call, log
 import traceback
+area = 'ConnectWise Import'
 
 class Command(BaseCommand):
     help = 'Import companies from ConnectWise'
@@ -23,6 +24,7 @@ class Command(BaseCommand):
                 self.sync_companies(connectwise_config)
 
     def sync_companies(self, connectwise_config):
+        # TODO: Create Dataverse Account if it doesn't exist.  Edit Dataverse Account if there is a change.
         try:
             companies_to_sync = self.fetch_all_data(connectwise_config, 'company/companies')
             for company in companies_to_sync:
@@ -45,10 +47,11 @@ class Command(BaseCommand):
 
         except Exception as e:
             message = f'An error occurred while syncing Companies: {e}\n{traceback.format_exc()}'
-            log('error', 'ConnectWise Import', message)
+            log('error', area, message)
             self.stdout.write(self.style.ERROR(message))
     
     def sync_companies_filter(self, connectwise_config, sync_company_types, sync_company_statuses):
+        # TODO: Create Dataverse Account if it doesn't exist.  Edit Dataverse Account if there is a change.
         try:
             # Build the list of types to filter against, if there are any.  Make the API call to CompanyTypeAssociations and get a list of matching company IDs
             companies_by_type = []
@@ -120,7 +123,7 @@ class Command(BaseCommand):
 
         except Exception as e:
             message = f"An error occurred while syncing Companies by filter: {str(e)}"
-            log('error', 'ConnectWise Import', message)
+            log('error', area, message)
             self.stdout.write(self.style.ERROR(message))
 
     def fetch_all_data(self, connectwise_config, endpoint):

@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
-from harmony.models import ConnectWiseConfig, CompanyMapping, ConnectWiseSite
-from harmony.utils import make_connectwise_api_call
+from harmony.models import ConnectWiseConfig, ConnectWiseCompany, ConnectWiseSite
+from harmony.utils import make_connectwise_api_call, log
+import traceback
+area = 'ConnectWise Site Import'
 
 class Command(BaseCommand):
     help = 'Import sites from ConnectWise'
@@ -10,7 +12,7 @@ class Command(BaseCommand):
             connectwise_configs = ConnectWiseConfig.objects.all()
 
             for connectwise_config in connectwise_configs:
-                companies = CompanyMapping.objects.filter(connectwise_config=connectwise_config)
+                companies = ConnectWiseCompany.objects.filter(connectwise_config=connectwise_config)
                 for company in companies:
                     company_id = company.connectwise_manage_id
                     next_page_url = 'initial_value'
@@ -26,11 +28,11 @@ class Command(BaseCommand):
                         site_mapping, created = ConnectWiseSite.objects.get_or_create(
                         company=company,
                         connectwise_manage_id=site['id'],
+                        defaults={
+                            'connectwise_manage_name': site['name']
+                        }
                     )
                     if created and site_mapping.connectwise_manage_name != site['name']:
-                        site_mapping.connectwise_manage_name=site['name']
-                        site_mapping.save()
-                    if not created:
                         site_mapping.connectwise_manage_name=site['name']
                         site_mapping.save()
                 
@@ -40,4 +42,6 @@ class Command(BaseCommand):
                 sites_to_delete.delete()
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"An error occurred while syncing Sites: {str(e)}"))
+            message = f'An error occurred while syncing Sites: {e}\n{traceback.format_exc()}'
+            log('error', area, message)
+            self.stdout.write(self.style.ERROR(message))

@@ -167,8 +167,8 @@ def create_dataverse_contact(sync_mapping, dataverse_account, connectwise_compan
                 "parentcustomerid_account@odata.bind": f"/accounts({accountid})",
             }
             contact_data.update(extra_contact_data)
-
-        connectwise_company = ConnectWiseCompany.objects.get(cpnnectwise_config = connectwise_config, connectwise_manage_id = connectwise_company_data[0].get("id"))
+        company_mapping = CompanyMapping.objects.get(sync_mapping=sync_mapping, dataverse_account=dataverse_account)
+        connectwise_company = company_mapping.connectwise_company
         connectwise_contact, created = ConnectWiseContact.objects.get_or_create(
             connectwise_company = connectwise_company,
             connectwise_manage_id = connectwise_contact_id,
@@ -177,7 +177,7 @@ def create_dataverse_contact(sync_mapping, dataverse_account, connectwise_compan
                 'last_name': connectwise_contact_data.get("lastName", "")
             }
         )
-        if not created and (connectwise_contact.first_name != connectwise_contact_data.get("firstName") or connectwise_contact.last_name != connectwise_contact_data.get("lastName")):
+        if created and (connectwise_contact.first_name != connectwise_contact_data.get("firstName") or connectwise_contact.last_name != connectwise_contact_data.get("lastName")):
             # Update the contact's first and last names
             connectwise_contact.first_name = connectwise_contact_data.get("firstName")
             connectwise_contact.last_name = connectwise_contact_data.get("lastName")

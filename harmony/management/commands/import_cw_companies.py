@@ -24,7 +24,6 @@ class Command(BaseCommand):
                 self.sync_companies(connectwise_config)
 
     def sync_companies(self, connectwise_config):
-        # TODO: Create Dataverse Account if it doesn't exist.  Edit Dataverse Account if there is a change.
         try:
             companies_to_sync = self.fetch_all_data(connectwise_config, 'company/companies')
             for company in companies_to_sync:
@@ -51,7 +50,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(message))
     
     def sync_companies_filter(self, connectwise_config, sync_company_types, sync_company_statuses):
-        # TODO: Create Dataverse Account if it doesn't exist.  Edit Dataverse Account if there is a change.
         try:
             # Build the list of types to filter against, if there are any.  Make the API call to CompanyTypeAssociations and get a list of matching company IDs
             companies_by_type = []
